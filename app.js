@@ -6,13 +6,10 @@ app.use(express.json());
 
 app.get('/', (req, res) => {
   res.json({
-  Estado: "Bienvenido a mi API!"
+  Estado: "¡Bienvenido a mi API!"
   })
 });
 
-// app.post('/', (req, res) => {
-//   res.status(404).send('me hiciste un post!')
-// })
 
 app.get('/gatitos', (req, res) => {
   fs.readFile(`${__dirname}/assets/cats.json`, (err, data) => {
@@ -23,6 +20,10 @@ app.get('/gatitos', (req, res) => {
     });
   });
 });
+
+// ----------------------------------------------------------------------------------------------
+//                        GET GATITOS BY ID
+// ----------------------------------------------------------------------------------------------
 
 app.get('/gatitos/:id', (req, res) => {
   fs.readFile(`${__dirname}/assets/cats.json`, (err, data) => {
@@ -52,45 +53,21 @@ app.get('/gatitos/:id', (req, res) => {
     });
   });
 
-//     const dataJSON = JSON.parse(data)
-//     res.json({
-//       status: "success",
-//       message: "Gatos encontrados",
-//       gatitos: `${dataJSON.length} gatitos encontrados`
-      
-//     }) //acá va el nombre de la variable con el que guardé toda la info (const gatitos)
-//   })  
-// });
- //:id para cualquier ruta que el usuario escriba en la URL
+// ----------------------------------------------------------------------------------------------
+//                        GET GATITOS BY REFUGIO ID
+// ----------------------------------------------------------------------------------------------
 
 app.get(`/gatitos/:id/refugio/:refugioId`, (req, res) => {
   console.log(req.params)
-  res.send("me pediste un gatito en particular")
+  res.send("Me pediste un gatito en particular")
 });
 
-// app.get(`/gatitos/:id`, (req, res) => {
-//   fs.readFile(`${__dirname}/assets/cats.json`, (err, data) => {
-//     const gatos = JSON.parse(data)
-//     let id = Number(req.params.id)
-//     const gatosFiltrados = gatos.filter(gato => gato.id === id)
-//     console.log(gatosFiltrados)
 
-//     if  (!gatosFiltrados.length) {
-//       return res.status(404).json({
-//         status: "fail",
-//         message: "Gato no encontrado"
-//       })
-//     }
-//     res.json({
-//       status: "success",
-//       data: gatosFiltrados
-//     })
-//   })
-// })
+// ----------------------------------------------------------------------------------------------
+//                        POST GATITOS - PARA CREAR NUEVOS GATITOS
+// ----------------------------------------------------------------------------------------------
 
 app.post('/gatitos', (req, res) => {
-  // console.log(req.body)
-  // res.send('Enviado')
 
   fs.readFile(`${__dirname}/assets/cats.json`, (err, data) => 
    {
@@ -109,6 +86,7 @@ app.post('/gatitos', (req, res) => {
       err => {
         res.status(201).json({
           status: 'success',
+          message: `Ahora la lista tiene ${dataJSON.length} gatitos.`,
           data: {
             nuevoGato,
             createdAt: new Date()
@@ -116,6 +94,62 @@ app.post('/gatitos', (req, res) => {
         });
       },
     );
+  });
+});
+
+// ----------------------------------------------------------------------------------------------
+//                        PUT GATITOS BY ID - PARA MODIFICAR GATITOS EXISTENTES
+// ----------------------------------------------------------------------------------------------
+
+app.put('/gatitos/:id', (req, res) => {
+  fs.readFile(`${__dirname}/assets/cats.json`,
+  (err, data) => {
+    const dataJSON = JSON.parse(data);
+    id = Number(req.params.id);
+    const gatoModificado = dataJSON.filter(gato => gato.id === id);
+    gatoModificado[0].longDesc = `Ahora también forma parte de los gatitos más lindos de esta lista`;
+        
+
+    fs.writeFile(
+      `${__dirname}/assets/cats.json`,
+      JSON.stringify(dataJSON),
+      err => {        
+        
+        res.status(202).json({
+          status: 'success',
+          message: "Estos son los datos con la modificación:",
+          data: {
+            gatoModificado,
+            modifiedAt: new Date()
+          },
+        });
+      },
+    );   
+  });
+});
+
+// ----------------------------------------------------------------------------------------------
+//                        DELETE GATITOS BY ID - PARA BORRAR GATITOS EXISTENTES
+// ----------------------------------------------------------------------------------------------
+
+app.delete('/gatitos/:id', (req, res) => {
+  fs.readFile(`${__dirname}/assets/cats.json`,
+  (err, data) => {
+    const dataJSON = JSON.parse(data);
+    id_delete = Number(req.params.id);
+    const nuevoArrayDeGatos = dataJSON.filter(gato => gato.id !== id_delete);
+    
+    fs.writeFile(
+      `${__dirname}/assets/cats.json`,
+      JSON.stringify(nuevoArrayDeGatos),
+      err => {          
+        res.status(202).json({
+          status: 'success',
+          message: `Se borró el gatito con ID ${id_delete}. 
+          Ahora la lista tiene un total de ${nuevoArrayDeGatos.length} gatitos.`, 
+        });
+      },
+    );   
   });
 });
 
